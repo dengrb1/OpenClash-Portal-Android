@@ -57,7 +57,10 @@ class RouterDiscoveryRepository(
         if (!capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) return null
         val linkProperties = connectivityManager.getLinkProperties(network) ?: return null
         return linkProperties.routes
-            .firstOrNull { route -> route.gateway != null && !route.gateway.isAnyLocalAddress }
+            .firstOrNull { route ->
+                val gateway = route.gateway ?: return@firstOrNull false
+                !gateway.isAnyLocalAddress
+            }
             ?.gateway
             ?.hostAddress
     }

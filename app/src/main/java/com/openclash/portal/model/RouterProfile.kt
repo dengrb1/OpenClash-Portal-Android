@@ -55,7 +55,10 @@ data class RouterProfile(
             }
             val explicitPort = when {
                 portInput.isNotBlank() -> portInput.toIntOrNull()
-                parsedUrl?.port != null && parsedUrl.port != parsedUrl.defaultPort -> parsedUrl.port
+                parsedUrl != null && parsedUrl.port != when {
+                    parsedUrl.isHttps -> RouterProtocol.HTTPS.defaultPort
+                    else -> RouterProtocol.HTTP.defaultPort
+                } -> parsedUrl.port
                 rawHost.count { it == ':' } == 1 && !rawHost.startsWith("[") -> rawHost.substringAfterLast(":").toIntOrNull()
                 else -> null
             }

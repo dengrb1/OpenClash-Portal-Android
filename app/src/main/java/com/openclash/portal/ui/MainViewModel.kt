@@ -7,6 +7,7 @@ import com.openclash.portal.data.ConnectError
 import com.openclash.portal.data.ConnectResult
 import com.openclash.portal.data.RouterDiscoveryRepository
 import com.openclash.portal.data.SessionRepository
+import com.openclash.portal.model.AppLanguage
 import com.openclash.portal.model.OpenClashStatus
 import com.openclash.portal.model.PortalDestination
 import com.openclash.portal.model.ResolvedPortalUrls
@@ -21,6 +22,7 @@ import kotlinx.coroutines.launch
 class MainViewModel(
     private val sessionRepository: SessionRepository,
     private val discoveryRepository: RouterDiscoveryRepository,
+    private val onLanguageChanged: (AppLanguage) -> Unit,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
@@ -64,9 +66,24 @@ class MainViewModel(
         _uiState.update { it.copy(customMetaCubeXdUrl = value) }
     }
 
+    fun onLanguageSelected(language: AppLanguage) {
+        viewModelScope.launch {
+            sessionRepository.saveAppLanguage(language)
+            onLanguageChanged(language)
+            _uiState.update { it.copy(appLanguage = language) }
+        }
+    }
+
     fun connect() {
         val profile = buildProfileOrNull() ?: run {
-            _uiState.update { it.copy(connectionError = "Enter a valid router address.") }
+            _uiState.update { state ->
+                state.copy(
+                    connectionError = when (state.appLanguage) {
+                        AppLanguage.ENGLISH -> "Enter a valid router address."
+                        AppLanguage.SIMPLIFIED_CHINESE -> "请输入有效的路由器地址。"
+                    },
+                )
+            }
             return
         }
         viewModelScope.launch {
@@ -110,7 +127,7 @@ class MainViewModel(
                             isInitializing = false,
                             isConnecting = false,
                             isConnected = false,
-                            connectionError = result.error.toUiMessage(),
+                            connectionError = result.error.toUiMessage(_uiState.value.appLanguage),
                         )
                     }
                 }
@@ -213,6 +230,8 @@ class MainViewModel(
             val savedProfile = sessionRepository.restoreProfile()
             val password = sessionRepository.loadPassword()
             val trustedHosts = sessionRepository.loadTrustedHosts()
+            val appLanguage = sessionRepository.loadAppLanguage()
+            onLanguageChanged(appLanguage)
             _uiState.update {
                 it.copy(
                     protocol = savedProfile?.protocol ?: RouterProtocol.HTTP,
@@ -224,6 +243,7 @@ class MainViewModel(
                     customMetaCubeXdUrl = savedProfile?.customMetaCubeXdUrl.orEmpty(),
                     activeProfile = savedProfile,
                     trustedHosts = trustedHosts,
+                    appLanguage = appLanguage,
                 )
             }
             discoverRouters()
@@ -271,26 +291,38 @@ data class MainUiState(
     val pageError: String? = null,
     val showSettings: Boolean = false,
     val pendingSslHost: String? = null,
+    val appLanguage: AppLanguage = AppLanguage.SIMPLIFIED_CHINESE,
 )
 
-private fun ConnectError.toUiMessage(): String {
-    return when (this) {
-        ConnectError.InvalidCredentials -> "Login failed: password rejected or LuCI login validation failed."
-        ConnectError.OpenClashUnavailable -> "OpenClash page is unavailable. The router may not have OpenClash installed."
-        ConnectError.RouterUnreachable -> "Cannot reach the router. Check the address, protocol, and current network."
-        is ConnectError.Unknown -> message
+private fun ConnectError.toUiMessage(language: AppLanguage): String {
+    return when (language) {
+        AppLanguage.ENGLISH -> when (this) {
+            ConnectError.InvalidCredentials -> "Login failed: password rejected or LuCI login validation failed."
+            ConnectError.OpenClashUnavailable -> "OpenClash page is unavailable. The router may not have OpenClash installed."
+            ConnectError.RouterUnreachable -> "Cannot reach the router. Check the address, protocol, and current network."
+            is ConnectError.Unknown -> message
+        }
+
+        AppLanguage.SIMPLIFIED_CHINESE -> when (this) {
+            ConnectError.InvalidCredentials -> "登录失败：密码被拒绝或 LuCI 登录校验失败。"
+            ConnectError.OpenClashUnavailable -> "无法访问 OpenClash 页面，路由器可能未安装 OpenClash。"
+            ConnectError.RouterUnreachable -> "无法连接到路由器，请检查地址、协议和当前网络。"
+            is ConnectError.Unknown -> message
+        }
     }
 }
 
 class MainViewModelFactory(
     private val sessionRepository: SessionRepository,
     private val discoveryRepository: RouterDiscoveryRepository,
+    private val onLanguageChanged: (AppLanguage) -> Unit,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return MainViewModel(
             sessionRepository = sessionRepository,
             discoveryRepository = discoveryRepository,
+            onLanguageChanged = onLanguageChanged,
         ) as T
     }
 }

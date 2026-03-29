@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">OpenClash 门户</string>
+    <string name="trust_and_continue">信任并继续</string>
+    <string name="cancel">取消</string>
+    <string name="untrusted_https_certificate">不受信任的 HTTPS 证书</string>
+    <string name="allow_insecure_https_for_host">仅允许对路由器主机 %1$s 使用不安全的 HTTPS。</string>
+    <string name="discover">发现</string>
+    <string name="connection_description">直接登录 OpenClash，并在应用内切换到 Zashboard 或 MetaCubeXD。</string>
+    <string name="discovered_router_addresses">已发现的路由器地址</string>
+    <string name="router_host_or_url">路由器主机或完整 URL</string>
+    <string name="luci_port">LuCI 端口</string>
+    <string name="openwrt_root_password">OpenWrt root 密码</string>
+    <string name="connecting">连接中...</string>
+    <string name="connect_and_open_openclash">连接并打开 OpenClash</string>
+    <string name="reconnect">重新连接</string>
+    <string name="settings">设置</string>
+    <string name="logout">退出登录</string>
+    <string name="openclash_unavailable">OpenClash URL 不可用。</string>
+    <string name="zashboard_unavailable">未安装 Zashboard，或没有可用 URL。</string>
+    <string name="metacubexd_unavailable">未安装 MetaCubeXD，或没有可用 URL。</string>
+    <string name="page_load_failed">页面加载失败</string>
+    <string name="page_returned_http">页面返回 HTTP %1$d</string>
+    <string name="continue_action">继续</string>
+    <string name="https_certificate_warning">HTTPS 证书警告</string>
+    <string name="webview_untrusted_certificate">WebView 检测到 %1$s 的证书不受信任。是否继续加载该主机？</string>
+    <string name="connection_settings">连接设置</string>
+    <string name="router_host">路由器主机</string>
+    <string name="root_password">root 密码</string>
+    <string name="custom_openclash_url">自定义 OpenClash URL</string>
+    <string name="custom_zashboard_url">自定义 Zashboard URL</string>
+    <string name="custom_metacubexd_url">自定义 MetaCubeXD URL</string>
+    <string name="clear_all_sessions">清除所有本地会话和已信任主机</string>
+    <string name="save_and_reconnect">保存并重连</string>
+    <string name="tab_openclash">OpenClash</string>
+    <string name="tab_zashboard">Zashboard</string>
+    <string name="tab_metacubexd">MetaCubeXD</string>
+    <string name="language">语言</string>
+    <string name="language_english">English</string>
+    <string name="language_simplified_chinese">简体中文</string>
+</resources>

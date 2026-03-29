@@ -53,10 +53,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.openclash.portal.R
+import com.openclash.portal.model.AppLanguage
 import com.openclash.portal.model.PortalDestination
 import com.openclash.portal.model.RouterProtocol
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -72,16 +75,16 @@ fun OpenClashPortalApp(
             onDismissRequest = viewModel::dismissSslPrompt,
             confirmButton = {
                 TextButton(onClick = viewModel::trustPendingHostAndRetry) {
-                    Text("Trust and continue")
+                    Text(stringResource(R.string.trust_and_continue))
                 }
             },
             dismissButton = {
                 TextButton(onClick = viewModel::dismissSslPrompt) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             },
-            title = { Text("Untrusted HTTPS certificate") },
-            text = { Text("Allow insecure HTTPS only for router host ${state.pendingSslHost}.") },
+            title = { Text(stringResource(R.string.untrusted_https_certificate)) },
+            text = { Text(stringResource(R.string.allow_insecure_https_for_host, state.pendingSslHost.orEmpty())) },
         )
     }
 
@@ -95,6 +98,7 @@ fun OpenClashPortalApp(
             onConnect = viewModel::connect,
             onDiscover = viewModel::discoverRouters,
             onCandidateSelected = viewModel::selectDiscoveryCandidate,
+            onLanguageSelected = viewModel::onLanguageSelected,
         )
     } else {
         PortalScreen(
@@ -116,6 +120,7 @@ fun OpenClashPortalApp(
             onMetaCubeXdUrlChanged = viewModel::onMetaCubeXdUrlChanged,
             onSaveSettings = viewModel::saveSettingsAndReconnect,
             onTrustHost = viewModel::trustHost,
+            onLanguageSelected = viewModel::onLanguageSelected,
         )
     }
 }
@@ -130,14 +135,15 @@ private fun ConnectionScreen(
     onConnect: () -> Unit,
     onDiscover: () -> Unit,
     onCandidateSelected: (String) -> Unit,
+    onLanguageSelected: (AppLanguage) -> Unit,
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("OpenClash Portal") },
+                title = { Text(stringResource(R.string.app_name)) },
                 actions = {
                     TextButton(onClick = onDiscover, enabled = !state.isDiscovering) {
-                        Text("Discover")
+                        Text(stringResource(R.string.discover))
                     }
                 },
             )
@@ -156,8 +162,12 @@ private fun ConnectionScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Text(
-                    text = "Log in to OpenClash directly and switch to Zashboard or MetaCubeXD inside the app.",
+                    text = stringResource(R.string.connection_description),
                     style = MaterialTheme.typography.bodyLarge,
+                )
+                LanguageSelector(
+                    selectedLanguage = state.appLanguage,
+                    onLanguageSelected = onLanguageSelected,
                 )
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -173,7 +183,7 @@ private fun ConnectionScreen(
                 }
                 if (state.discoveryCandidates.isNotEmpty()) {
                     Text(
-                        text = "Discovered router addresses",
+                        text = stringResource(R.string.discovered_router_addresses),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                     )
@@ -193,14 +203,14 @@ private fun ConnectionScreen(
                     value = state.hostInput,
                     onValueChange = onHostChanged,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Router host or full URL") },
+                    label = { Text(stringResource(R.string.router_host_or_url)) },
                     singleLine = true,
                 )
                 OutlinedTextField(
                     value = state.portInput,
                     onValueChange = onPortChanged,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("LuCI port") },
+                    label = { Text(stringResource(R.string.luci_port)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 )
@@ -208,7 +218,7 @@ private fun ConnectionScreen(
                     value = state.passwordInput,
                     onValueChange = onPasswordChanged,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("OpenWrt root password") },
+                    label = { Text(stringResource(R.string.openwrt_root_password)) },
                     singleLine = true,
                 )
                 state.connectionError?.let { error ->
@@ -229,7 +239,7 @@ private fun ConnectionScreen(
                             strokeWidth = 2.dp,
                         )
                     }
-                    Text(if (state.isConnecting) "Connecting..." else "Connect and open OpenClash")
+                    Text(if (state.isConnecting) stringResource(R.string.connecting) else stringResource(R.string.connect_and_open_openclash))
                 }
             }
         }
@@ -256,16 +266,17 @@ private fun PortalScreen(
     onMetaCubeXdUrlChanged: (String) -> Unit,
     onSaveSettings: () -> Unit,
     onTrustHost: (String) -> Unit,
+    onLanguageSelected: (AppLanguage) -> Unit,
 ) {
     val currentUrl = state.resolvedUrls?.urlFor(state.selectedTab)
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(state.activeProfile?.normalizedHost ?: "OpenClash Portal") },
+                title = { Text(state.activeProfile?.normalizedHost ?: stringResource(R.string.app_name)) },
                 actions = {
-                    TextButton(onClick = onReconnect) { Text("Reconnect") }
-                    TextButton(onClick = onOpenSettings) { Text("Settings") }
-                    TextButton(onClick = onLogout) { Text("Logout") }
+                    TextButton(onClick = onReconnect) { Text(stringResource(R.string.reconnect)) }
+                    TextButton(onClick = onOpenSettings) { Text(stringResource(R.string.settings)) }
+                    TextButton(onClick = onLogout) { Text(stringResource(R.string.logout)) }
                 },
             )
         },
@@ -280,17 +291,17 @@ private fun PortalScreen(
                     Tab(
                         selected = state.selectedTab == destination,
                         onClick = { onSelectTab(destination) },
-                        text = { Text(destination.title) },
+                        text = { Text(destination.displayName()) },
                     )
                 }
             }
             if (currentUrl == null) {
                 PortalUnavailable(
-                    title = state.selectedTab.title,
+                    title = state.selectedTab.displayName(),
                     message = when (state.selectedTab) {
-                        PortalDestination.OPENCLASH -> "OpenClash URL is unavailable."
-                        PortalDestination.ZASHBOARD -> "Zashboard is not installed or no URL is available."
-                        PortalDestination.METACUBEXD -> "MetaCubeXD is not installed or no URL is available."
+                        PortalDestination.OPENCLASH -> stringResource(R.string.openclash_unavailable)
+                        PortalDestination.ZASHBOARD -> stringResource(R.string.zashboard_unavailable)
+                        PortalDestination.METACUBEXD -> stringResource(R.string.metacubexd_unavailable)
                     },
                 )
             } else {
@@ -330,6 +341,7 @@ private fun PortalScreen(
             onMetaCubeXdUrlChanged = onMetaCubeXdUrlChanged,
             onSave = onSaveSettings,
             onWipeAll = onWipeAll,
+            onLanguageSelected = onLanguageSelected,
         )
     }
 }
@@ -408,7 +420,7 @@ private fun PortalWebView(
                     ) {
                         super.onReceivedError(view, request, error)
                         if (request?.isForMainFrame == true) {
-                            currentOnPageError(error?.description?.toString() ?: "Page load failed")
+                            currentOnPageError(error?.description?.toString() ?: context.getString(R.string.page_load_failed))
                         }
                     }
 
@@ -419,7 +431,7 @@ private fun PortalWebView(
                     ) {
                         super.onReceivedHttpError(view, request, errorResponse)
                         if (request?.isForMainFrame == true) {
-                            currentOnPageError("Page returned HTTP ${errorResponse?.statusCode ?: 0}")
+                            currentOnPageError(context.getString(R.string.page_returned_http, errorResponse?.statusCode ?: 0))
                         }
                     }
 
@@ -461,7 +473,7 @@ private fun PortalWebView(
                     pendingSslHandler = null
                     pendingSslHost = null
                 }) {
-                    Text("Continue")
+                    Text(stringResource(R.string.continue_action))
                 }
             },
             dismissButton = {
@@ -470,11 +482,11 @@ private fun PortalWebView(
                     pendingSslHandler = null
                     pendingSslHost = null
                 }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             },
-            title = { Text("HTTPS certificate warning") },
-            text = { Text("WebView reported an untrusted certificate for ${pendingSslHost.orEmpty()}. Continue loading this host?") },
+            title = { Text(stringResource(R.string.https_certificate_warning)) },
+            text = { Text(stringResource(R.string.webview_untrusted_certificate, pendingSslHost.orEmpty())) },
         )
     }
 }
@@ -492,10 +504,11 @@ private fun SettingsDialog(
     onMetaCubeXdUrlChanged: (String) -> Unit,
     onSave: () -> Unit,
     onWipeAll: () -> Unit,
+    onLanguageSelected: (AppLanguage) -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Connection settings") },
+        title = { Text(stringResource(R.string.connection_settings)) },
         text = {
             Column(
                 modifier = Modifier
@@ -519,14 +532,14 @@ private fun SettingsDialog(
                     value = state.hostInput,
                     onValueChange = onHostChanged,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Router host") },
+                    label = { Text(stringResource(R.string.router_host)) },
                     singleLine = true,
                 )
                 OutlinedTextField(
                     value = state.portInput,
                     onValueChange = onPortChanged,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("LuCI port") },
+                    label = { Text(stringResource(R.string.luci_port)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 )
@@ -534,7 +547,7 @@ private fun SettingsDialog(
                     value = state.passwordInput,
                     onValueChange = onPasswordChanged,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("root password") },
+                    label = { Text(stringResource(R.string.root_password)) },
                     singleLine = true,
                 )
                 HorizontalDivider()
@@ -542,34 +555,82 @@ private fun SettingsDialog(
                     value = state.customOpenClashUrl,
                     onValueChange = onOpenClashUrlChanged,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Custom OpenClash URL") },
+                    label = { Text(stringResource(R.string.custom_openclash_url)) },
                 )
                 OutlinedTextField(
                     value = state.customZashboardUrl,
                     onValueChange = onZashboardUrlChanged,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Custom Zashboard URL") },
+                    label = { Text(stringResource(R.string.custom_zashboard_url)) },
                 )
                 OutlinedTextField(
                     value = state.customMetaCubeXdUrl,
                     onValueChange = onMetaCubeXdUrlChanged,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Custom MetaCubeXD URL") },
+                    label = { Text(stringResource(R.string.custom_metacubexd_url)) },
+                )
+                LanguageSelector(
+                    selectedLanguage = state.appLanguage,
+                    onLanguageSelected = onLanguageSelected,
                 )
                 OutlinedButton(onClick = onWipeAll, modifier = Modifier.fillMaxWidth()) {
-                    Text("Clear all local sessions and trusted hosts")
+                    Text(stringResource(R.string.clear_all_sessions))
                 }
             }
         },
         confirmButton = {
             TextButton(onClick = onSave) {
-                Text("Save and reconnect")
+                Text(stringResource(R.string.save_and_reconnect))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         },
     )
+}
+
+
+@Composable
+private fun PortalDestination.displayName(): String {
+    return when (this) {
+        PortalDestination.OPENCLASH -> stringResource(R.string.tab_openclash)
+        PortalDestination.ZASHBOARD -> stringResource(R.string.tab_zashboard)
+        PortalDestination.METACUBEXD -> stringResource(R.string.tab_metacubexd)
+    }
+}
+
+
+@Composable
+private fun LanguageSelector(
+    selectedLanguage: AppLanguage,
+    onLanguageSelected: (AppLanguage) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = stringResource(R.string.language),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+        )
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            AppLanguage.entries.forEach { language ->
+                FilterChip(
+                    selected = selectedLanguage == language,
+                    onClick = { onLanguageSelected(language) },
+                    label = {
+                        Text(
+                            when (language) {
+                                AppLanguage.ENGLISH -> stringResource(R.string.language_english)
+                                AppLanguage.SIMPLIFIED_CHINESE -> stringResource(R.string.language_simplified_chinese)
+                            },
+                        )
+                    },
+                )
+            }
+        }
+    }
 }

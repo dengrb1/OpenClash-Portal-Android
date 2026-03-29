@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -296,35 +295,37 @@ private fun PortalScreen(
                     )
                 }
             }
-            if (currentUrl == null) {
-                PortalUnavailable(
-                    modifier = Modifier.weight(1f),
-                    title = state.selectedTab.displayName(),
-                    message = when (state.selectedTab) {
-                        PortalDestination.OPENCLASH -> stringResource(R.string.openclash_unavailable)
-                        PortalDestination.ZASHBOARD -> stringResource(R.string.zashboard_unavailable)
-                        PortalDestination.METACUBEXD -> stringResource(R.string.metacubexd_unavailable)
-                    },
-                )
-            } else {
-                PortalWebView(
-                    modifier = Modifier.weight(1f),
-                    url = currentUrl,
-                    trustedHosts = state.trustedHosts,
-                    onPageFinished = onSyncCookies,
-                    onPageError = onSetPageError,
-                    onTrustHost = onTrustHost,
-                )
-                state.pageError?.let { error ->
-                    Surface(
-                        color = MaterialTheme.colorScheme.errorContainer,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(
-                            text = error,
-                            color = MaterialTheme.colorScheme.onErrorContainer,
-                            modifier = Modifier.padding(12.dp),
-                        )
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (currentUrl == null) {
+                    PortalUnavailable(
+                        title = state.selectedTab.displayName(),
+                        message = when (state.selectedTab) {
+                            PortalDestination.OPENCLASH -> stringResource(R.string.openclash_unavailable)
+                            PortalDestination.ZASHBOARD -> stringResource(R.string.zashboard_unavailable)
+                            PortalDestination.METACUBEXD -> stringResource(R.string.metacubexd_unavailable)
+                        },
+                    )
+                } else {
+                    PortalWebView(
+                        url = currentUrl,
+                        trustedHosts = state.trustedHosts,
+                        onPageFinished = onSyncCookies,
+                        onPageError = onSetPageError,
+                        onTrustHost = onTrustHost,
+                    )
+                    state.pageError?.let { error ->
+                        Surface(
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.BottomCenter),
+                        ) {
+                            Text(
+                                text = error,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.padding(12.dp),
+                            )
+                        }
                     }
                 }
             }

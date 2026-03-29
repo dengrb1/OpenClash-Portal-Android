@@ -32,7 +32,7 @@ class OpenClashUrlResolverTest {
         val resolved = resolver.resolve(profile, status)
 
         assertEquals(
-            "http://192.168.1.1:9090/ui/zashboard/#/setup?hostname=192.168.1.1&port=9090&secret=secret123",
+            "http://192.168.1.1:9090/ui/dashboard/#/setup?host=192.168.1.1&port=9090&secret=secret123",
             resolved.zashboardUrl,
         )
         assertEquals(
@@ -63,7 +63,7 @@ class OpenClashUrlResolverTest {
         val resolved = resolver.resolve(profile, status)
 
         assertEquals(
-            "https://panel.example.com:9443/ui/zashboard/#/setup?hostname=panel.example.com&port=9443&secret=forward-secret",
+            "https://panel.example.com:9443/ui/dashboard/#/setup?host=panel.example.com&port=9443&secret=forward-secret",
             resolved.zashboardUrl,
         )
         assertNull(resolved.metaCubeXdUrl)
@@ -90,7 +90,38 @@ class OpenClashUrlResolverTest {
 
         val resolved = resolver.resolve(profile, status)
 
-        assertEquals("http://192.168.0.1:9090/ui/zashboard/#/", resolved.zashboardUrl)
+        assertEquals("http://192.168.0.1:9090/ui/dashboard/", resolved.zashboardUrl)
+    }
+
+    @Test
+    fun `uses daip for direct controller access when available`() {
+        val profile = RouterProfile(
+            protocol = RouterProtocol.HTTP,
+            host = "router.lan",
+            port = 80,
+        )
+        val status = OpenClashStatus(
+            clash = true,
+            daip = "192.168.50.1",
+            dase = "secret123",
+            cnPort = 9090,
+            dbForwardDomain = null,
+            dbForwardPort = null,
+            dbForwardSsl = false,
+            zashboardAvailable = true,
+            metaCubeXdAvailable = true,
+        )
+
+        val resolved = resolver.resolve(profile, status)
+
+        assertEquals(
+            "http://router.lan:9090/ui/dashboard/#/setup?host=192.168.50.1&port=9090&secret=secret123",
+            resolved.zashboardUrl,
+        )
+        assertEquals(
+            "http://router.lan:9090/ui/metacubexd/#/setup?hostname=192.168.50.1&port=9090&secret=secret123",
+            resolved.metaCubeXdUrl,
+        )
     }
 }
 

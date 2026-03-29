@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -297,6 +298,7 @@ private fun PortalScreen(
             }
             if (currentUrl == null) {
                 PortalUnavailable(
+                    modifier = Modifier.weight(1f),
                     title = state.selectedTab.displayName(),
                     message = when (state.selectedTab) {
                         PortalDestination.OPENCLASH -> stringResource(R.string.openclash_unavailable)
@@ -306,6 +308,7 @@ private fun PortalScreen(
                 )
             } else {
                 PortalWebView(
+                    modifier = Modifier.weight(1f),
                     url = currentUrl,
                     trustedHosts = state.trustedHosts,
                     onPageFinished = onSyncCookies,
@@ -348,11 +351,12 @@ private fun PortalScreen(
 
 @Composable
 private fun PortalUnavailable(
+    modifier: Modifier = Modifier,
     title: String,
     message: String,
 ) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -369,6 +373,7 @@ private fun PortalUnavailable(
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 private fun PortalWebView(
+    modifier: Modifier = Modifier,
     url: String,
     trustedHosts: Set<String>,
     onPageFinished: (String) -> Unit,
@@ -387,9 +392,15 @@ private fun PortalWebView(
         WebView(context).apply {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
+            settings.databaseEnabled = true
             settings.loadsImagesAutomatically = true
             settings.cacheMode = WebSettings.LOAD_DEFAULT
             settings.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+            settings.useWideViewPort = true
+            settings.loadWithOverviewMode = true
+            settings.setSupportZoom(true)
+            settings.builtInZoomControls = true
+            settings.displayZoomControls = false
             CookieManager.getInstance().setAcceptCookie(true)
             CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
         }
@@ -402,7 +413,7 @@ private fun PortalWebView(
     }
 
     AndroidView(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         factory = {
             webView.apply {
                 webChromeClient = WebChromeClient()

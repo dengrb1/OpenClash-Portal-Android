@@ -38,4 +38,7 @@
     <string name="language">Language</string>
     <string name="language_english">English</string>
     <string name="language_simplified_chinese">Simplified Chinese</string>
+    <string name="dashboard_external_browser_message">Zashboard and MetaCubeXD are opened in the system browser for better compatibility. When you return to the app, it will switch back to OpenClash automatically.</string>
+    <string name="open_in_browser">Open in browser</string>
+    <string name="browser_launch_failed">No browser is available to open this panel.</string>
 </resources>

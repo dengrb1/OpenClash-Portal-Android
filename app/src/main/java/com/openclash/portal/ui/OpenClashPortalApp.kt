@@ -6,6 +6,8 @@
 package com.openclash.portal.ui
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
 import android.net.http.SslError
 import android.webkit.CookieManager
 import android.webkit.SslErrorHandler
@@ -44,6 +46,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,6 +61,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.openclash.portal.R
 import com.openclash.portal.model.AppLanguage
 import com.openclash.portal.model.PortalDestination
@@ -269,6 +276,7 @@ private fun PortalScreen(
     onLanguageSelected: (AppLanguage) -> Unit,
 ) {
     val currentUrl = state.resolvedUrls?.urlFor(state.selectedTab)
+    val openExternally = state.selectedTab == PortalDestination.ZASHBOARD || state.selectedTab == PortalDestination.METACUBEXD
     Scaffold(
         topBar = {
             TopAppBar(
@@ -303,6 +311,12 @@ private fun PortalScreen(
                         PortalDestination.ZASHBOARD -> stringResource(R.string.zashboard_unavailable)
                         PortalDestination.METACUBEXD -> stringResource(R.string.metacubexd_unavailable)
                     },
+                )
+            } else if (openExternally) {
+                ExternalPanelScreen(
+                    url = currentUrl,
+                    panelName = state.selectedTab.displayName(),
+                    onReturnToOpenClash = { onSelectTab(PortalDestination.OPENCLASH) },
                 )
             } else {
                 PortalWebView(
@@ -343,6 +357,83 @@ private fun PortalScreen(
             onWipeAll = onWipeAll,
             onLanguageSelected = onLanguageSelected,
         )
+    }
+}
+
+@Composable
+private fun ExternalPanelScreen(
+    url: String,
+    panelName: String,
+    onReturnToOpenClash: () -> Unit,
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var hasLaunched by remember(url) { mutableStateOf(false) }
+    var awaitingReturn by remember(url) { mutableStateOf(false) }
+    var launchError by remember(url) { mutableStateOf<String?>(null) }
+
+    fun launchPanel() {
+        launchError = runCatching {
+            val uri = Uri.parse(url)
+            CustomTabsIntent.Builder().build().launchUrl(context, uri)
+        }.recoverCatching {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+        }.exceptionOrNull()?.let {
+            context.getString(R.string.browser_launch_failed)
+        }
+        if (launchError == null) {
+            hasLaunched = true
+            awaitingReturn = true
+        }
+    }
+
+    LaunchedEffect(url) {
+        if (!hasLaunched) {
+            launchPanel()
+        }
+    }
+
+    DisposableEffect(lifecycleOwner, awaitingReturn) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME && awaitingReturn && hasLaunched) {
+                awaitingReturn = false
+                onReturnToOpenClash()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(text = panelName, style = MaterialTheme.typography.headlineSmall)
+            Text(
+                text = stringResource(R.string.dashboard_external_browser_message),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            Button(onClick = ::launchPanel) {
+                Text(stringResource(R.string.open_in_browser))
+            }
+            launchError?.let { error ->
+                Text(
+                    text = error,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        }
     }
 }
 

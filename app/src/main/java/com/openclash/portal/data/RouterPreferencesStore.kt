@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.openclash.portal.model.AppLanguage
 import com.openclash.portal.model.RouterProfile
 import com.openclash.portal.model.RouterProtocol
 import kotlinx.coroutines.flow.first
@@ -24,6 +25,7 @@ class RouterPreferencesStore(
         val customZashboardUrl = stringPreferencesKey("custom_zashboard_url")
         val customMetaCubeXdUrl = stringPreferencesKey("custom_metacubexd_url")
         val trustedHosts = stringSetPreferencesKey("trusted_hosts")
+        val appLanguage = stringPreferencesKey("app_language")
     }
 
     suspend fun loadProfile(): RouterProfile? {
@@ -80,6 +82,19 @@ class RouterPreferencesStore(
     suspend fun clearTrustedHosts() {
         context.routerDataStore.edit { preferences ->
             preferences.remove(Keys.trustedHosts)
+        }
+    }
+
+    suspend fun loadAppLanguage(): AppLanguage {
+        val tag = context.routerDataStore.data
+            .map { preferences -> preferences[Keys.appLanguage] }
+            .first()
+        return AppLanguage.entries.firstOrNull { it.tag == tag } ?: AppLanguage.SIMPLIFIED_CHINESE
+    }
+
+    suspend fun saveAppLanguage(language: AppLanguage) {
+        context.routerDataStore.edit { preferences ->
+            preferences[Keys.appLanguage] = language.tag
         }
     }
 }

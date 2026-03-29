@@ -63,6 +63,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.10.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
     implementation("androidx.datastore:datastore-preferences:1.2.1")
+    implementation("androidx.browser:browser:1.9.0")
     implementation("androidx.security:security-crypto-ktx:1.1.0")
     implementation("androidx.webkit:webkit:1.15.0")
 

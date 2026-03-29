@@ -6,6 +6,8 @@
 package com.openclash.portal.ui
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
 import android.net.http.SslError
 import android.webkit.CookieManager
 import android.webkit.SslErrorHandler
@@ -47,6 +49,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -59,6 +62,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.browser.customtabs.CustomTabsIntent
 import com.openclash.portal.R
 import com.openclash.portal.model.AppLanguage
 import com.openclash.portal.model.PortalDestination
@@ -306,7 +310,7 @@ private fun PortalScreen(
                             PortalDestination.METACUBEXD -> stringResource(R.string.metacubexd_unavailable)
                         },
                     )
-                } else {
+                } else if (state.selectedTab == PortalDestination.OPENCLASH) {
                     PortalWebView(
                         url = currentUrl,
                         trustedHosts = state.trustedHosts,
@@ -328,6 +332,11 @@ private fun PortalScreen(
                             )
                         }
                     }
+                } else {
+                    BrowserPanelFallback(
+                        url = currentUrl,
+                        panelName = state.selectedTab.displayName(),
+                    )
                 }
             }
         }
@@ -527,6 +536,64 @@ private fun resetDashboardState(webView: WebView) {
         """.trimIndent(),
         null,
     )
+}
+
+@Composable
+private fun BrowserPanelFallback(
+    url: String,
+    panelName: String,
+) {
+    val context = LocalContext.current
+    var hasLaunched by remember(url) { mutableStateOf(false) }
+    var launchError by remember(url) { mutableStateOf<String?>(null) }
+
+    fun openInBrowser() {
+        launchError = runCatching {
+            val uri = Uri.parse(url)
+            CustomTabsIntent.Builder().build().launchUrl(context, uri)
+        }.recoverCatching {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+        }.exceptionOrNull()?.let {
+            context.getString(R.string.browser_launch_failed)
+        }
+    }
+
+    LaunchedEffect(url) {
+        if (!hasLaunched) {
+            openInBrowser()
+            hasLaunched = true
+        }
+    }
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(text = panelName, style = MaterialTheme.typography.headlineSmall)
+            Text(
+                text = stringResource(R.string.dashboard_external_browser_message),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            Button(onClick = ::openInBrowser) {
+                Text(stringResource(R.string.open_in_browser))
+            }
+            launchError?.let { error ->
+                Text(
+                    text = error,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        }
+    }
 }
 
 @Composable

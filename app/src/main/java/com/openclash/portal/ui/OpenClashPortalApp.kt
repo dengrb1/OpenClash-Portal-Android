@@ -371,18 +371,22 @@ private fun ExternalPanelScreen(
     var hasLaunched by remember(url) { mutableStateOf(false) }
     var awaitingReturn by remember(url) { mutableStateOf(false) }
     var launchError by remember(url) { mutableStateOf<String?>(null) }
+    val browserLaunchFailedMessage = context.getString(R.string.browser_launch_failed)
 
     fun launchPanel() {
-        launchError = runCatching {
+        launchError = null
+        try {
             val uri = Uri.parse(url)
             CustomTabsIntent.Builder().build().launchUrl(context, uri)
-        }.recoverCatching {
+        } catch (_: Throwable) {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
-            context.startActivity(intent)
-        }.exceptionOrNull()?.let {
-            context.getString(R.string.browser_launch_failed)
+            try {
+                context.startActivity(intent)
+            } catch (_: Throwable) {
+                launchError = browserLaunchFailedMessage
+            }
         }
         if (launchError == null) {
             hasLaunched = true

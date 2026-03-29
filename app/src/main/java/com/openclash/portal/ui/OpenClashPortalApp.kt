@@ -11,6 +11,7 @@ import android.net.Uri
 import android.net.http.SslError
 import android.webkit.CookieManager
 import android.webkit.SslErrorHandler
+import android.webkit.WebStorage
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -49,6 +50,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -337,6 +339,11 @@ private fun PortalScreen(
                             modifier = Modifier.padding(12.dp),
                         )
                     }
+                } else {
+                    BrowserPanelFallback(
+                        url = currentUrl,
+                        panelName = state.selectedTab.displayName(),
+                    )
                 }
             }
         }
@@ -439,11 +446,12 @@ private fun ExternalPanelScreen(
 
 @Composable
 private fun PortalUnavailable(
+    modifier: Modifier = Modifier,
     title: String,
     message: String,
 ) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -460,6 +468,7 @@ private fun PortalUnavailable(
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 private fun PortalWebView(
+    modifier: Modifier = Modifier,
     url: String,
     trustedHosts: Set<String>,
     onPageFinished: (String) -> Unit,
@@ -473,14 +482,21 @@ private fun PortalWebView(
     val currentOnPageFinished by rememberUpdatedState(onPageFinished)
     val currentOnPageError by rememberUpdatedState(onPageError)
     val currentOnTrustHost by rememberUpdatedState(onTrustHost)
+    val isDashboardUrl = remember(url) { url.contains("/ui/zashboard") || url.contains("/ui/metacubexd") }
 
     val webView = remember {
         WebView(context).apply {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
+            settings.databaseEnabled = true
             settings.loadsImagesAutomatically = true
             settings.cacheMode = WebSettings.LOAD_DEFAULT
             settings.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+            settings.useWideViewPort = true
+            settings.loadWithOverviewMode = true
+            settings.setSupportZoom(true)
+            settings.builtInZoomControls = true
+            settings.displayZoomControls = false
             CookieManager.getInstance().setAcceptCookie(true)
             CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
         }
@@ -493,9 +509,12 @@ private fun PortalWebView(
     }
 
     AndroidView(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         factory = {
             webView.apply {
+                if (isDashboardUrl) {
+                    resetDashboardState(this)
+                }
                 webChromeClient = WebChromeClient()
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView?, loadedUrl: String?) {
@@ -545,6 +564,9 @@ private fun PortalWebView(
         },
         update = { currentWebView ->
             if (currentWebView.url != url) {
+                if (isDashboardUrl) {
+                    resetDashboardState(currentWebView)
+                }
                 currentWebView.loadUrl(url)
             }
         },
@@ -579,6 +601,82 @@ private fun PortalWebView(
             title = { Text(stringResource(R.string.https_certificate_warning)) },
             text = { Text(stringResource(R.string.webview_untrusted_certificate, pendingSslHost.orEmpty())) },
         )
+    }
+}
+
+private fun resetDashboardState(webView: WebView) {
+    webView.stopLoading()
+    webView.clearHistory()
+    webView.clearCache(true)
+    webView.clearFormData()
+    WebStorage.getInstance().deleteAllData()
+    webView.evaluateJavascript(
+        """
+        (function() {
+            try { window.localStorage.clear(); } catch (e) {}
+            try { window.sessionStorage.clear(); } catch (e) {}
+            return true;
+        })();
+        """.trimIndent(),
+        null,
+    )
+}
+
+@Composable
+private fun BrowserPanelFallback(
+    url: String,
+    panelName: String,
+) {
+    val context = LocalContext.current
+    var hasLaunched by remember(url) { mutableStateOf(false) }
+    var launchError by remember(url) { mutableStateOf<String?>(null) }
+
+    fun openInBrowser() {
+        launchError = runCatching {
+            val uri = Uri.parse(url)
+            CustomTabsIntent.Builder().build().launchUrl(context, uri)
+        }.recoverCatching {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+        }.exceptionOrNull()?.let {
+            context.getString(R.string.browser_launch_failed)
+        }
+    }
+
+    LaunchedEffect(url) {
+        if (!hasLaunched) {
+            openInBrowser()
+            hasLaunched = true
+        }
+    }
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(text = panelName, style = MaterialTheme.typography.headlineSmall)
+            Text(
+                text = stringResource(R.string.dashboard_external_browser_message),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            Button(onClick = ::openInBrowser) {
+                Text(stringResource(R.string.open_in_browser))
+            }
+            launchError?.let { error ->
+                Text(
+                    text = error,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        }
     }
 }
 

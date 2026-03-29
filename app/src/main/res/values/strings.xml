@@ -38,4 +38,8 @@
     <string name="language">Language</string>
     <string name="language_english">English</string>
     <string name="language_simplified_chinese">Simplified Chinese</string>
+    <string name="dashboard_external_browser_title">Open in browser</string>
+    <string name="dashboard_external_browser_message">Zashboard and MetaCubeXD use modern frontend stacks that may fail inside Android WebView. Open this panel in the system browser for full rendering.</string>
+    <string name="open_in_browser">Open in browser</string>
+    <string name="browser_launch_failed">No browser is available to open this panel.</string>
 </resources>

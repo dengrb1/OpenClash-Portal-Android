@@ -9,6 +9,7 @@ import android.annotation.SuppressLint
 import android.net.http.SslError
 import android.webkit.CookieManager
 import android.webkit.SslErrorHandler
+import android.webkit.WebStorage
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -388,6 +389,7 @@ private fun PortalWebView(
     val currentOnPageFinished by rememberUpdatedState(onPageFinished)
     val currentOnPageError by rememberUpdatedState(onPageError)
     val currentOnTrustHost by rememberUpdatedState(onTrustHost)
+    val isDashboardUrl = remember(url) { url.contains("/ui/zashboard") || url.contains("/ui/metacubexd") }
 
     val webView = remember {
         WebView(context).apply {
@@ -417,6 +419,9 @@ private fun PortalWebView(
         modifier = modifier.fillMaxSize(),
         factory = {
             webView.apply {
+                if (isDashboardUrl) {
+                    resetDashboardState(this)
+                }
                 webChromeClient = WebChromeClient()
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView?, loadedUrl: String?) {
@@ -466,6 +471,9 @@ private fun PortalWebView(
         },
         update = { currentWebView ->
             if (currentWebView.url != url) {
+                if (isDashboardUrl) {
+                    resetDashboardState(currentWebView)
+                }
                 currentWebView.loadUrl(url)
             }
         },
@@ -501,6 +509,24 @@ private fun PortalWebView(
             text = { Text(stringResource(R.string.webview_untrusted_certificate, pendingSslHost.orEmpty())) },
         )
     }
+}
+
+private fun resetDashboardState(webView: WebView) {
+    webView.stopLoading()
+    webView.clearHistory()
+    webView.clearCache(true)
+    webView.clearFormData()
+    WebStorage.getInstance().deleteAllData()
+    webView.evaluateJavascript(
+        """
+        (function() {
+            try { window.localStorage.clear(); } catch (e) {}
+            try { window.sessionStorage.clear(); } catch (e) {}
+            return true;
+        })();
+        """.trimIndent(),
+        null,
+    )
 }
 
 @Composable

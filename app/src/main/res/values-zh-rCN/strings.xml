@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">OpenClash &#x95E8;&#x6237;</string>
+    <string name="trust_and_continue">&#x4FE1;&#x4EFB;&#x5E76;&#x7EE7;&#x7EED;</string>
+    <string name="cancel">&#x53D6;&#x6D88;</string>
+    <string name="untrusted_https_certificate">&#x4E0D;&#x53D7;&#x4FE1;&#x4EFB;&#x7684; HTTPS &#x8BC1;&#x4E66;</string>
+    <string name="allow_insecure_https_for_host">&#x4EC5;&#x5141;&#x8BB8;&#x5BF9;&#x8DEF;&#x7531;&#x5668;&#x4E3B;&#x673A; %1$s &#x4F7F;&#x7528;&#x4E0D;&#x5B89;&#x5168;&#x7684; HTTPS&#x3002;</string>
+    <string name="discover">&#x53D1;&#x73B0;</string>
+    <string name="connection_description">&#x76F4;&#x63A5;&#x767B;&#x5F55; OpenClash&#xFF0C;&#x5E76;&#x5728;&#x5E94;&#x7528;&#x5185;&#x5207;&#x6362;&#x5230; Zashboard &#x6216; MetaCubeXD&#x3002;</string>
+    <string name="discovered_router_addresses">&#x5DF2;&#x53D1;&#x73B0;&#x7684;&#x8DEF;&#x7531;&#x5668;&#x5730;&#x5740;</string>
+    <string name="router_host_or_url">&#x8DEF;&#x7531;&#x5668;&#x4E3B;&#x673A;&#x6216;&#x5B8C;&#x6574; URL</string>
+    <string name="luci_port">LuCI &#x7AEF;&#x53E3;</string>
+    <string name="openwrt_root_password">OpenWrt root &#x5BC6;&#x7801;</string>
+    <string name="connecting">&#x8FDE;&#x63A5;&#x4E2D;...</string>
+    <string name="connect_and_open_openclash">&#x8FDE;&#x63A5;&#x5E76;&#x6253;&#x5F00; OpenClash</string>
+    <string name="reconnect">&#x91CD;&#x65B0;&#x8FDE;&#x63A5;</string>
+    <string name="settings">&#x8BBE;&#x7F6E;</string>
+    <string name="logout">&#x9000;&#x51FA;&#x767B;&#x5F55;</string>
+    <string name="openclash_unavailable">OpenClash URL &#x4E0D;&#x53EF;&#x7528;&#x3002;</string>
+    <string name="zashboard_unavailable">&#x672A;&#x5B89;&#x88C5; Zashboard&#xFF0C;&#x6216;&#x6CA1;&#x6709;&#x53EF;&#x7528; URL&#x3002;</string>
+    <string name="metacubexd_unavailable">&#x672A;&#x5B89;&#x88C5; MetaCubeXD&#xFF0C;&#x6216;&#x6CA1;&#x6709;&#x53EF;&#x7528; URL&#x3002;</string>
+    <string name="page_load_failed">&#x9875;&#x9762;&#x52A0;&#x8F7D;&#x5931;&#x8D25;</string>
+    <string name="page_returned_http">&#x9875;&#x9762;&#x8FD4;&#x56DE; HTTP %1$d</string>
+    <string name="continue_action">&#x7EE7;&#x7EED;</string>
+    <string name="https_certificate_warning">HTTPS &#x8BC1;&#x4E66;&#x8B66;&#x544A;</string>
+    <string name="webview_untrusted_certificate">WebView &#x68C0;&#x6D4B;&#x5230; %1$s &#x7684;&#x8BC1;&#x4E66;&#x4E0D;&#x53D7;&#x4FE1;&#x4EFB;&#x3002;&#x662F;&#x5426;&#x7EE7;&#x7EED;&#x52A0;&#x8F7D;&#x6B64;&#x4E3B;&#x673A;&#xFF1F;</string>
+    <string name="connection_settings">&#x8FDE;&#x63A5;&#x8BBE;&#x7F6E;</string>
+    <string name="router_host">&#x8DEF;&#x7531;&#x5668;&#x4E3B;&#x673A;</string>
+    <string name="root_password">root &#x5BC6;&#x7801;</string>
+    <string name="custom_openclash_url">&#x81EA;&#x5B9A;&#x4E49; OpenClash URL</string>
+    <string name="custom_zashboard_url">&#x81EA;&#x5B9A;&#x4E49; Zashboard URL</string>
+    <string name="custom_metacubexd_url">&#x81EA;&#x5B9A;&#x4E49; MetaCubeXD URL</string>
+    <string name="clear_all_sessions">&#x6E05;&#x9664;&#x6240;&#x6709;&#x672C;&#x5730;&#x4F1A;&#x8BDD;&#x548C;&#x5DF2;&#x4FE1;&#x4EFB;&#x4E3B;&#x673A;</string>
+    <string name="save_and_reconnect">&#x4FDD;&#x5B58;&#x5E76;&#x91CD;&#x65B0;&#x8FDE;&#x63A5;</string>
+    <string name="tab_openclash">OpenClash</string>
+    <string name="tab_zashboard">Zashboard</string>
+    <string name="tab_metacubexd">MetaCubeXD</string>
+    <string name="language">&#x8BED;&#x8A00;</string>
+    <string name="language_english">English</string>
+    <string name="language_simplified_chinese">&#x7B80;&#x4F53;&#x4E2D;&#x6587;</string>
+    <string name="dashboard_external_browser_message">Zashboard &#x548C; MetaCubeXD &#x4F1A;&#x6539;&#x4E3A;&#x5728;&#x7CFB;&#x7EDF;&#x6D4F;&#x89C8;&#x5668;&#x4E2D;&#x6253;&#x5F00;&#xFF0C;&#x4EE5;&#x83B7;&#x5F97;&#x66F4;&#x597D;&#x7684;&#x517C;&#x5BB9;&#x6027;&#x3002;&#x5F53;&#x4F60;&#x9000;&#x51FA;&#x9762;&#x677F;&#x56DE;&#x5230;&#x672C;&#x5E94;&#x7528;&#x65F6;&#xFF0C;&#x4F1A;&#x81EA;&#x52A8;&#x5207;&#x56DE; OpenClash&#x3002;</string>
+    <string name="open_in_browser">&#x5728;&#x6D4F;&#x89C8;&#x5668;&#x4E2D;&#x6253;&#x5F00;</string>
+    <string name="browser_launch_failed">&#x672A;&#x627E;&#x5230;&#x53EF;&#x7528;&#x7684;&#x6D4F;&#x89C8;&#x5668;&#x6765;&#x6253;&#x5F00;&#x8BE5;&#x9762;&#x677F;&#x3002;</string>
+</resources>

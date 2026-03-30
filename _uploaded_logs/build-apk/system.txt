@@ -1,0 +1,8 @@
+2026-03-29T03:21:51.7800000Z Evaluating build-apk.if
+2026-03-29T03:21:51.7800000Z Evaluating: success()
+2026-03-29T03:21:51.7800000Z Result: true
+2026-03-29T03:21:51.7820000Z Requested labels: ubuntu-latest
+2026-03-29T03:21:51.7820000Z Job defined at: dengrb1/OpenClash-Portal-Android/.github/workflows/android-build.yml@refs/pull/3/merge
+2026-03-29T03:21:51.7820000Z Waiting for a runner to pick up this job...
+2026-03-29T03:21:52.2830000Z Job is waiting for a hosted runner to come online.
+2026-03-29T03:21:52.2830000Z Job is about to start running on the hosted runner: GitHub Actions 1000000211

@@ -1,0 +1,64 @@
+﻿2026-03-29T03:24:01.0506069Z ##[debug]Evaluating condition for step: 'Post Checkout'
+2026-03-29T03:24:01.0507960Z ##[debug]Evaluating: always()
+2026-03-29T03:24:01.0508320Z ##[debug]Evaluating always:
+2026-03-29T03:24:01.0508641Z ##[debug]=> true
+2026-03-29T03:24:01.0509001Z ##[debug]Result: true
+2026-03-29T03:24:01.0509507Z ##[debug]Starting: Post Checkout
+2026-03-29T03:24:01.0560241Z ##[debug]Loading inputs
+2026-03-29T03:24:01.0561704Z ##[debug]Evaluating: github.repository
+2026-03-29T03:24:01.0562358Z ##[debug]Evaluating Index:
+2026-03-29T03:24:01.0562598Z ##[debug]..Evaluating github:
+2026-03-29T03:24:01.0562872Z ##[debug]..=> Object
+2026-03-29T03:24:01.0563099Z ##[debug]..Evaluating String:
+2026-03-29T03:24:01.0563547Z ##[debug]..=> 'repository'
+2026-03-29T03:24:01.0563873Z ##[debug]=> 'dengrb1/OpenClash-Portal-Android'
+2026-03-29T03:24:01.0564212Z ##[debug]Result: 'dengrb1/OpenClash-Portal-Android'
+2026-03-29T03:24:01.0566026Z ##[debug]Evaluating: github.token
+2026-03-29T03:24:01.0566297Z ##[debug]Evaluating Index:
+2026-03-29T03:24:01.0566548Z ##[debug]..Evaluating github:
+2026-03-29T03:24:01.0566789Z ##[debug]..=> Object
+2026-03-29T03:24:01.0567005Z ##[debug]..Evaluating String:
+2026-03-29T03:24:01.0567226Z ##[debug]..=> 'token'
+2026-03-29T03:24:01.0567614Z ##[debug]=> '***'
+2026-03-29T03:24:01.0567937Z ##[debug]Result: '***'
+2026-03-29T03:24:01.0578318Z ##[debug]Loading env
+2026-03-29T03:24:01.0582776Z Post job cleanup.
+2026-03-29T03:24:01.1583547Z ##[debug]Getting git version
+2026-03-29T03:24:01.1587275Z [command]/usr/bin/git version
+2026-03-29T03:24:01.1640161Z git version 2.53.0
+2026-03-29T03:24:01.1665000Z ##[debug]0
+2026-03-29T03:24:01.1667016Z ##[debug]git version 2.53.0
+2026-03-29T03:24:01.1667253Z ##[debug]
+2026-03-29T03:24:01.1672414Z ##[debug]Set git useragent to: git/2.53.0 (github-actions-checkout)
+2026-03-29T03:24:01.1678165Z ::add-mask::***
+2026-03-29T03:24:01.1697662Z Temporarily overriding HOME='/home/runner/work/_temp/962479d4-aaae-43f3-aa19-dc9ce26d0d80' before making global git config changes
+2026-03-29T03:24:01.1700225Z Adding repository directory to the temporary git global config as a safe directory
+2026-03-29T03:24:01.1706608Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/OpenClash-Portal-Android/OpenClash-Portal-Android
+2026-03-29T03:24:01.1736642Z ##[debug]0
+2026-03-29T03:24:01.1737373Z ##[debug]
+2026-03-29T03:24:01.1746822Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-03-29T03:24:01.1777240Z ##[debug]1
+2026-03-29T03:24:01.1779409Z ##[debug]
+2026-03-29T03:24:01.1787015Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-03-29T03:24:01.2019309Z ##[debug]0
+2026-03-29T03:24:01.2020712Z ##[debug]
+2026-03-29T03:24:01.2029080Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-03-29T03:24:01.2054715Z http.https://github.com/.extraheader
+2026-03-29T03:24:01.2063454Z ##[debug]0
+2026-03-29T03:24:01.2064725Z ##[debug]http.https://github.com/.extraheader
+2026-03-29T03:24:01.2065238Z ##[debug]
+2026-03-29T03:24:01.2071259Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-03-29T03:24:01.2100076Z ##[debug]0
+2026-03-29T03:24:01.2102334Z ##[debug]
+2026-03-29T03:24:01.2108525Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-03-29T03:24:01.2331683Z ##[debug]0
+2026-03-29T03:24:01.2334656Z ##[debug]
+2026-03-29T03:24:01.2338958Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-03-29T03:24:01.2365955Z ##[debug]1
+2026-03-29T03:24:01.2367096Z ##[debug]
+2026-03-29T03:24:01.2373909Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-03-29T03:24:01.2605161Z ##[debug]0
+2026-03-29T03:24:01.2605809Z ##[debug]
+2026-03-29T03:24:01.2606340Z ##[debug]Unsetting HOME override
+2026-03-29T03:24:01.2714207Z ##[debug]Node Action run completed with exit code 0
+2026-03-29T03:24:01.2717465Z ##[debug]Finishing: Post Checkout

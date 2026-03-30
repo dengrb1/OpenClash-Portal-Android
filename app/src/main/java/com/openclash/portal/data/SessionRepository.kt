@@ -1,5 +1,6 @@
 package com.openclash.portal.data
 
+import com.openclash.portal.model.AppLanguage
 import com.openclash.portal.model.OpenClashStatus
 import com.openclash.portal.model.ResolvedPortalUrls
 import com.openclash.portal.model.RouterProfile
@@ -28,6 +29,12 @@ class SessionRepository(
     fun loadPassword(): String = secureStorage.loadPassword().orEmpty()
 
     suspend fun loadTrustedHosts(): Set<String> = preferencesStore.loadTrustedHosts()
+
+    suspend fun loadAppLanguage(): AppLanguage = preferencesStore.loadAppLanguage()
+
+    suspend fun saveAppLanguage(language: AppLanguage) {
+        preferencesStore.saveAppLanguage(language)
+    }
 
     suspend fun trustHost(host: String) {
         preferencesStore.trustHost(host)

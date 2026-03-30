@@ -371,7 +371,7 @@ private fun ExternalPanelScreen(
     var hasLaunched by remember(url) { mutableStateOf(false) }
     var awaitingReturn by remember(url) { mutableStateOf(false) }
     var launchError by remember(url) { mutableStateOf<String?>(null) }
-    val browserLaunchFailedMessage = stringResource(R.string.browser_launch_failed)
+    val browserLaunchFailedMessage = context.getString(R.string.browser_launch_failed)
 
     fun launchPanel() {
         launchError = null
@@ -400,7 +400,7 @@ private fun ExternalPanelScreen(
         }
     }
 
-    DisposableEffect(lifecycleOwner, awaitingReturn, hasLaunched) {
+    DisposableEffect(lifecycleOwner, awaitingReturn) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME && awaitingReturn && hasLaunched) {
                 awaitingReturn = false

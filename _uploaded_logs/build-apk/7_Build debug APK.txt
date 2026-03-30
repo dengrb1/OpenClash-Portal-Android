@@ -1,0 +1,72 @@
+﻿2026-03-29T03:22:24.5687775Z ##[debug]Evaluating condition for step: 'Build debug APK'
+2026-03-29T03:22:24.5689524Z ##[debug]Evaluating: success()
+2026-03-29T03:22:24.5689896Z ##[debug]Evaluating success:
+2026-03-29T03:22:24.5690265Z ##[debug]=> true
+2026-03-29T03:22:24.5690578Z ##[debug]Result: true
+2026-03-29T03:22:24.5691077Z ##[debug]Starting: Build debug APK
+2026-03-29T03:22:24.5700374Z ##[debug]Loading inputs
+2026-03-29T03:22:24.5701566Z ##[debug]Loading env
+2026-03-29T03:22:24.5705417Z ##[group]Run ./gradlew assembleDebug
+2026-03-29T03:22:24.5705733Z [36;1m./gradlew assembleDebug[0m
+2026-03-29T03:22:24.5730904Z shell: /usr/bin/bash -e {0}
+2026-03-29T03:22:24.5731152Z env:
+2026-03-29T03:22:24.5731449Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-03-29T03:22:24.5732443Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-03-29T03:22:24.5732852Z   ANDROID_HOME: /usr/local/lib/android/sdk
+2026-03-29T03:22:24.5733155Z   ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+2026-03-29T03:22:24.5733461Z ##[endgroup]
+2026-03-29T03:22:24.5763587Z ##[debug]/usr/bin/bash -e /home/runner/work/_temp/235bf219-2847-4b9e-aecf-7c47cef2e662.sh
+2026-03-29T03:22:24.6741414Z Downloading https://services.gradle.org/distributions/gradle-8.13-bin.zip
+2026-03-29T03:22:26.9782773Z .............10%.............20%.............30%.............40%.............50%.............60%.............70%.............80%.............90%.............100%
+2026-03-29T03:22:28.3333166Z 
+2026-03-29T03:22:28.3334990Z Welcome to Gradle 8.13!
+2026-03-29T03:22:28.3336723Z 
+2026-03-29T03:22:28.3338390Z Here are the highlights of this release:
+2026-03-29T03:22:28.3340357Z  - Daemon JVM auto-provisioning
+2026-03-29T03:22:28.3342638Z  - Enhancements for Scala plugin and JUnit testing
+2026-03-29T03:22:28.3369878Z  - Improvements for build authors and plugin developers
+2026-03-29T03:22:28.3371353Z 
+2026-03-29T03:22:28.3371909Z For more details see https://docs.gradle.org/8.13/release-notes.html
+2026-03-29T03:22:28.3372966Z 
+2026-03-29T03:22:28.4303484Z Starting a Gradle Daemon (subsequent builds will be faster)
+2026-03-29T03:23:45.0340057Z > Task :app:preBuild UP-TO-DATE
+2026-03-29T03:23:45.0340686Z > Task :app:preDebugBuild UP-TO-DATE
+2026-03-29T03:23:45.0341308Z > Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+2026-03-29T03:23:45.0342337Z > Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+2026-03-29T03:23:45.1303261Z > Task :app:generateDebugBuildConfig
+2026-03-29T03:24:00.3302740Z > Task :app:checkDebugAarMetadata FAILED
+2026-03-29T03:24:00.3321766Z 2 actionable tasks: 2 executed
+2026-03-29T03:24:00.3373448Z 
+2026-03-29T03:24:00.3373828Z FAILURE: Build failed with an exception.
+2026-03-29T03:24:00.3374238Z 
+2026-03-29T03:24:00.3374439Z * What went wrong:
+2026-03-29T03:24:00.3375001Z Execution failed for task ':app:checkDebugAarMetadata'.
+2026-03-29T03:24:00.3375956Z > Could not resolve all files for configuration ':app:debugRuntimeClasspath'.
+2026-03-29T03:24:00.3376842Z    > Could not find androidx.appcompat:appcompat:1.8.0.
+2026-03-29T03:24:00.3377504Z      Searched in the following locations:
+2026-03-29T03:24:00.3378547Z        - https://dl.google.com/dl/android/maven2/androidx/appcompat/appcompat/1.8.0/appcompat-1.8.0.pom
+2026-03-29T03:24:00.3380299Z        - https://repo.maven.apache.org/maven2/androidx/appcompat/appcompat/1.8.0/appcompat-1.8.0.pom
+2026-03-29T03:24:00.3381133Z      Required by:
+2026-03-29T03:24:00.3381514Z          project :app
+2026-03-29T03:24:00.3382255Z    > Could not find androidx.appcompat:appcompat:1.8.0.
+2026-03-29T03:24:00.3382890Z      Searched in the following locations:
+2026-03-29T03:24:00.3383913Z        - https://dl.google.com/dl/android/maven2/androidx/appcompat/appcompat/1.8.0/appcompat-1.8.0.pom
+2026-03-29T03:24:00.3385527Z        - https://repo.maven.apache.org/maven2/androidx/appcompat/appcompat/1.8.0/appcompat-1.8.0.pom
+2026-03-29T03:24:00.3386437Z      Required by:
+2026-03-29T03:24:00.3387254Z          project :app > com.google.android.material:material:1.13.0
+2026-03-29T03:24:00.3388672Z    > Could not find androidx.appcompat:appcompat:1.8.0.
+2026-03-29T03:24:00.3389494Z      Searched in the following locations:
+2026-03-29T03:24:00.3390662Z        - https://dl.google.com/dl/android/maven2/androidx/appcompat/appcompat/1.8.0/appcompat-1.8.0.pom
+2026-03-29T03:24:00.3410802Z        - https://repo.maven.apache.org/maven2/androidx/appcompat/appcompat/1.8.0/appcompat-1.8.0.pom
+2026-03-29T03:24:00.3411742Z      Required by:
+2026-03-29T03:24:00.3413111Z          project :app > com.google.android.material:material:1.13.0 > androidx.constraintlayout:constraintlayout:2.1.0
+2026-03-29T03:24:00.3413876Z 
+2026-03-29T03:24:00.3413996Z * Try:
+2026-03-29T03:24:00.3414497Z > Run with --stacktrace option to get the stack trace.
+2026-03-29T03:24:00.3415646Z > Run with --info or --debug option to get more log output.
+2026-03-29T03:24:00.3416279Z > Run with --scan to get full insights.
+2026-03-29T03:24:00.3416867Z > Get more help at https://help.gradle.org.
+2026-03-29T03:24:00.3417200Z 
+2026-03-29T03:24:00.3417402Z BUILD FAILED in 1m 35s
+2026-03-29T03:24:00.8637924Z ##[error]Process completed with exit code 1.
+2026-03-29T03:24:00.8650952Z ##[debug]Finishing: Build debug APK

@@ -2,6 +2,15 @@ name: Android Build
 
 on:
   workflow_dispatch:
+    inputs:
+      version_name:
+        description: "APK version name"
+        required: false
+        default: "1.2"
+      version_code:
+        description: "APK version code"
+        required: false
+        default: "1"
   push:
     branches:
       - master
@@ -34,7 +43,20 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build debug APK
-        run: ./gradlew assembleDebug
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+          VERSION_NAME: ${{ format('1.2.{0}', github.run_number) }}
+          INPUT_VERSION_CODE: ${{ github.event.inputs.version_code }}
+          INPUT_VERSION_NAME: ${{ github.event.inputs.version_name }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "$INPUT_VERSION_CODE" ]; then
+            VERSION_CODE="$INPUT_VERSION_CODE"
+          fi
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "$INPUT_VERSION_NAME" ]; then
+            VERSION_NAME="$INPUT_VERSION_NAME"
+          fi
+
+          ./gradlew assembleDebug -PVERSION_CODE="$VERSION_CODE" -PVERSION_NAME="$VERSION_NAME"
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4

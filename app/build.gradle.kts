@@ -12,8 +12,11 @@ android {
         applicationId = "com.openclash.portal"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        val versionCodeFromProperty = (project.findProperty("VERSION_CODE") as String?)?.toIntOrNull()
+        val versionNameFromProperty = project.findProperty("VERSION_NAME") as String?
+
+        versionCode = versionCodeFromProperty ?: 1
+        versionName = versionNameFromProperty ?: "1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

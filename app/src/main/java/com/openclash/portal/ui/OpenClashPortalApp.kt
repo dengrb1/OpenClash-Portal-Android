@@ -11,6 +11,7 @@ import android.net.Uri
 import android.net.http.SslError
 import android.webkit.CookieManager
 import android.webkit.SslErrorHandler
+import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -18,6 +19,8 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -303,39 +306,47 @@ private fun PortalScreen(
                     )
                 }
             }
-            if (currentUrl == null) {
-                PortalUnavailable(
-                    title = state.selectedTab.displayName(),
-                    message = when (state.selectedTab) {
-                        PortalDestination.OPENCLASH -> stringResource(R.string.openclash_unavailable)
-                        PortalDestination.ZASHBOARD -> stringResource(R.string.zashboard_unavailable)
-                        PortalDestination.METACUBEXD -> stringResource(R.string.metacubexd_unavailable)
-                    },
-                )
-            } else if (openExternally) {
-                ExternalPanelScreen(
-                    url = currentUrl,
-                    panelName = state.selectedTab.displayName(),
-                    onReturnToOpenClash = { onSelectTab(PortalDestination.OPENCLASH) },
-                )
-            } else {
-                PortalWebView(
-                    url = currentUrl,
-                    trustedHosts = state.trustedHosts,
-                    onPageFinished = onSyncCookies,
-                    onPageError = onSetPageError,
-                    onTrustHost = onTrustHost,
-                )
-                state.pageError?.let { error ->
-                    Surface(
-                        color = MaterialTheme.colorScheme.errorContainer,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(
-                            text = error,
-                            color = MaterialTheme.colorScheme.onErrorContainer,
-                            modifier = Modifier.padding(12.dp),
-                        )
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+            ) {
+                if (currentUrl == null) {
+                    PortalUnavailable(
+                        title = state.selectedTab.displayName(),
+                        message = when (state.selectedTab) {
+                            PortalDestination.OPENCLASH -> stringResource(R.string.openclash_unavailable)
+                            PortalDestination.ZASHBOARD -> stringResource(R.string.zashboard_unavailable)
+                            PortalDestination.METACUBEXD -> stringResource(R.string.metacubexd_unavailable)
+                        },
+                    )
+                } else if (openExternally) {
+                    ExternalPanelScreen(
+                        url = currentUrl,
+                        panelName = state.selectedTab.displayName(),
+                        onReturnToOpenClash = { onSelectTab(PortalDestination.OPENCLASH) },
+                    )
+                } else {
+                    PortalWebView(
+                        url = currentUrl,
+                        trustedHosts = state.trustedHosts,
+                        onPageFinished = onSyncCookies,
+                        onPageError = onSetPageError,
+                        onTrustHost = onTrustHost,
+                    )
+                    state.pageError?.let { error ->
+                        Surface(
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.BottomCenter),
+                        ) {
+                            Text(
+                                text = error,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.padding(12.dp),
+                            )
+                        }
                     }
                 }
             }
@@ -368,12 +379,13 @@ private fun ExternalPanelScreen(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    var hasLaunched by remember(url) { mutableStateOf(false) }
-    var awaitingReturn by remember(url) { mutableStateOf(false) }
+    val returnController = remember(url) { ExternalBrowserReturnController() }
+    var launchRequested by remember(url) { mutableStateOf(false) }
     var launchError by remember(url) { mutableStateOf<String?>(null) }
     val browserLaunchFailedMessage = context.getString(R.string.browser_launch_failed)
 
     fun launchPanel() {
+        if (launchRequested) return
         launchError = null
         try {
             val uri = Uri.parse(url)
@@ -389,22 +401,26 @@ private fun ExternalPanelScreen(
             }
         }
         if (launchError == null) {
-            hasLaunched = true
-            awaitingReturn = true
+            returnController.markBrowserLaunched()
+            launchRequested = true
         }
     }
 
     LaunchedEffect(url) {
-        if (!hasLaunched) {
+        if (!launchRequested) {
             launchPanel()
         }
     }
 
-    DisposableEffect(lifecycleOwner, awaitingReturn) {
+    DisposableEffect(lifecycleOwner, returnController) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME && awaitingReturn && hasLaunched) {
-                awaitingReturn = false
-                onReturnToOpenClash()
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -> returnController.markAppBackgrounded()
+                Lifecycle.Event.ON_RESUME -> if (returnController.consumeReturn()) {
+                    launchRequested = false
+                    onReturnToOpenClash()
+                }
+                else -> Unit
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -427,7 +443,10 @@ private fun ExternalPanelScreen(
                 text = stringResource(R.string.dashboard_external_browser_message),
                 style = MaterialTheme.typography.bodyLarge,
             )
-            Button(onClick = ::launchPanel) {
+            Button(
+                onClick = ::launchPanel,
+                enabled = !launchRequested,
+            ) {
                 Text(stringResource(R.string.open_in_browser))
             }
             launchError?.let { error ->
@@ -473,18 +492,33 @@ private fun PortalWebView(
     val context = LocalContext.current
     var pendingSslHandler by remember { mutableStateOf<SslErrorHandler?>(null) }
     var pendingSslHost by remember { mutableStateOf<String?>(null) }
+    var fileChooserCallback by remember { mutableStateOf<ValueCallback<Array<Uri>>?>(null) }
     val currentTrustedHosts by rememberUpdatedState(trustedHosts)
     val currentOnPageFinished by rememberUpdatedState(onPageFinished)
     val currentOnPageError by rememberUpdatedState(onPageError)
     val currentOnTrustHost by rememberUpdatedState(onTrustHost)
+    val fileChooserLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        fileChooserCallback?.onReceiveValue(
+            WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data),
+        )
+        fileChooserCallback = null
+    }
 
     val webView = remember {
         WebView(context).apply {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
+            settings.databaseEnabled = true
             settings.loadsImagesAutomatically = true
             settings.cacheMode = WebSettings.LOAD_DEFAULT
             settings.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+            settings.useWideViewPort = true
+            settings.loadWithOverviewMode = true
+            settings.setSupportZoom(true)
+            settings.builtInZoomControls = true
+            settings.displayZoomControls = false
             CookieManager.getInstance().setAcceptCookie(true)
             CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
         }
@@ -492,6 +526,8 @@ private fun PortalWebView(
 
     DisposableEffect(webView) {
         onDispose {
+            fileChooserCallback?.onReceiveValue(null)
+            fileChooserCallback = null
             webView.destroy()
         }
     }
@@ -500,7 +536,33 @@ private fun PortalWebView(
         modifier = Modifier.fillMaxSize(),
         factory = {
             webView.apply {
-                webChromeClient = WebChromeClient()
+                webChromeClient = object : WebChromeClient() {
+                    override fun onShowFileChooser(
+                        webView: WebView?,
+                        filePathCallback: ValueCallback<Array<Uri>>?,
+                        fileChooserParams: WebChromeClient.FileChooserParams?,
+                    ): Boolean {
+                        val callback = filePathCallback ?: return false
+                        fileChooserCallback?.onReceiveValue(null)
+                        fileChooserCallback = callback
+
+                        val chooserIntent = runCatching { fileChooserParams?.createIntent() }.getOrNull()
+                        if (chooserIntent == null) {
+                            fileChooserCallback = null
+                            callback.onReceiveValue(null)
+                            return false
+                        }
+
+                        return runCatching {
+                            fileChooserLauncher.launch(chooserIntent)
+                            true
+                        }.getOrElse {
+                            fileChooserCallback = null
+                            callback.onReceiveValue(null)
+                            false
+                        }
+                    }
+                }
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView?, loadedUrl: String?) {
                         super.onPageFinished(view, loadedUrl)

@@ -876,6 +876,7 @@ private fun PortalWebView(
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView?, loadedUrl: String?) {
                         super.onPageFinished(view, loadedUrl)
+                        view?.installOpenClashModalCompatibilityStyles()
                         currentOnPageError(null)
                         loadedUrl?.let(currentOnPageFinished)
                     }
@@ -957,6 +958,66 @@ private fun PortalWebView(
         )
     }
 }
+
+private fun WebView.installOpenClashModalCompatibilityStyles() {
+    evaluateJavascript(OPENCLASH_MODAL_COMPATIBILITY_SCRIPT, null)
+}
+
+/**
+ * OpenClash renders several actions as custom fixed overlays instead of native dialogs. Some
+ * Android WebView implementations paint their backdrop but lose the centered card when the
+ * overlay uses backdrop-filter. Keep all OpenClash-style modal cards within the visual viewport
+ * and use an opaque backdrop that is reliable across WebView versions.
+ */
+internal val OPENCLASH_MODAL_COMPATIBILITY_SCRIPT = """
+    (function() {
+        var styleId = 'openclash-portal-modal-compatibility';
+        if (document.getElementById(styleId)) return;
+
+        var style = document.createElement('style');
+        style.id = styleId;
+        style.textContent = `
+            #config-upload-overlay.config-upload-model-overlay.show,
+            .modal-overlay.show,
+            .modal-backdrop.show,
+            [class*="-modal-overlay"].show,
+            [class*="-model-overlay"].show {
+                position: fixed !important;
+                inset: 0 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                box-sizing: border-box !important;
+                padding: 16px !important;
+                overflow: auto !important;
+                background: rgba(0, 0, 0, 0.5) !important;
+                -webkit-backdrop-filter: none !important;
+                backdrop-filter: none !important;
+            }
+
+            #config-upload-overlay.config-upload-model-overlay.show > #config-upload-model.config-upload-model,
+            .modal-overlay.show > .modal,
+            .modal-backdrop.show > .modal,
+            [class*="-modal-overlay"].show > [class*="-modal"],
+            [class*="-model-overlay"].show > [class*="-model"] {
+                display: flex !important;
+                width: 100% !important;
+                max-width: 550px !important;
+                max-height: calc(100vh - 32px) !important;
+                min-height: 0 !important;
+                box-sizing: border-box !important;
+                margin: auto !important;
+                overflow-y: auto !important;
+                flex-shrink: 0 !important;
+                position: relative !important;
+                z-index: 1 !important;
+            }
+        `;
+        (document.head || document.documentElement).appendChild(style);
+    })();
+""".trimIndent()
 
 @Composable
 private fun SettingsDialog(

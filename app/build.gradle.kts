@@ -15,8 +15,8 @@ android {
         val versionCodeFromProperty = (project.findProperty("VERSION_CODE") as String?)?.toIntOrNull()
         val versionNameFromProperty = project.findProperty("VERSION_NAME") as String?
 
-        versionCode = versionCodeFromProperty ?: 1
-        versionName = versionNameFromProperty ?: "1.2"
+        versionCode = versionCodeFromProperty ?: 2
+        versionName = versionNameFromProperty ?: "1.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

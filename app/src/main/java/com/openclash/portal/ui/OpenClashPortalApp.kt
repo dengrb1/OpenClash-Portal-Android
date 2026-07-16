@@ -25,28 +25,57 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Router
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -60,18 +89,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.browser.customtabs.CustomTabsIntent
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.openclash.portal.R
 import com.openclash.portal.model.AppLanguage
 import com.openclash.portal.model.PortalDestination
 import com.openclash.portal.model.RouterProtocol
+import com.openclash.portal.ui.theme.PortalDimensions
+import com.openclash.portal.ui.theme.LocalPortalStatusColors
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 @Composable
@@ -136,7 +168,7 @@ fun OpenClashPortalApp(
 }
 
 @Composable
-private fun ConnectionScreen(
+internal fun ConnectionScreen(
     state: MainUiState,
     onProtocolSelected: (RouterProtocol) -> Unit,
     onHostChanged: (String) -> Unit,
@@ -147,109 +179,193 @@ private fun ConnectionScreen(
     onCandidateSelected: (String) -> Unit,
     onLanguageSelected: (AppLanguage) -> Unit,
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.app_name)) },
-                actions = {
-                    TextButton(onClick = onDiscover, enabled = !state.isDiscovering) {
-                        Text(stringResource(R.string.discover))
-                    }
-                },
-            )
-        },
-    ) { innerPadding ->
-        Box(
+    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(20.dp),
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = PortalDimensions.screenHorizontalPadding, vertical = PortalDimensions.contentSpacing)
+                .windowInsetsPadding(WindowInsets.navigationBars),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+            WelcomeHeader()
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                ),
             ) {
-                Text(
-                    text = stringResource(R.string.connection_description),
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-                LanguageSelector(
-                    selectedLanguage = state.appLanguage,
-                    onLanguageSelected = onLanguageSelected,
-                )
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                Column(
+                    modifier = Modifier.padding(PortalDimensions.cardPadding),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    RouterProtocol.entries.forEach { protocol ->
-                        FilterChip(
-                            selected = state.protocol == protocol,
-                            onClick = { onProtocolSelected(protocol) },
-                            label = { Text(protocol.name) },
-                        )
-                    }
-                }
-                if (state.discoveryCandidates.isNotEmpty()) {
                     Text(
-                        text = stringResource(R.string.discovered_router_addresses),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
+                        text = stringResource(R.string.connect_to_router),
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                    Text(
+                        text = stringResource(R.string.connection_details),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = stringResource(R.string.protocol),
+                        style = MaterialTheme.typography.titleSmall,
                     )
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        state.discoveryCandidates.forEach { candidate ->
-                            AssistChip(
-                                onClick = { onCandidateSelected(candidate) },
-                                label = { Text(candidate) },
+                        RouterProtocol.entries.forEach { protocol ->
+                            FilterChip(
+                                selected = state.protocol == protocol,
+                                onClick = { onProtocolSelected(protocol) },
+                                label = { Text(protocol.name) },
                             )
                         }
                     }
-                }
-                OutlinedTextField(
-                    value = state.hostInput,
-                    onValueChange = onHostChanged,
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.router_host_or_url)) },
-                    singleLine = true,
-                )
-                OutlinedTextField(
-                    value = state.portInput,
-                    onValueChange = onPortChanged,
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.luci_port)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                )
-                OutlinedTextField(
-                    value = state.passwordInput,
-                    onValueChange = onPasswordChanged,
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.openwrt_root_password)) },
-                    singleLine = true,
-                )
-                state.connectionError?.let { error ->
-                    Text(
-                        text = error,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium,
+                    OutlinedTextField(
+                        value = state.hostInput,
+                        onValueChange = onHostChanged,
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(stringResource(R.string.router_host_or_url)) },
+                        leadingIcon = { Icon(Icons.Filled.Router, null) },
+                        singleLine = true,
                     )
-                }
-                Button(
-                    onClick = onConnect,
-                    enabled = !state.isConnecting,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    if (state.isConnecting || state.isInitializing) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.padding(end = 8.dp),
-                            strokeWidth = 2.dp,
+                    OutlinedTextField(
+                        value = state.portInput,
+                        onValueChange = onPortChanged,
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(stringResource(R.string.luci_port)) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    )
+                    OutlinedTextField(
+                        value = state.passwordInput,
+                        onValueChange = onPasswordChanged,
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(stringResource(R.string.openwrt_root_password)) },
+                        singleLine = true,
+                    )
+                    RouterDiscovery(
+                        state = state,
+                        onDiscover = onDiscover,
+                        onCandidateSelected = onCandidateSelected,
+                    )
+                    ConnectionStatusCard(state = state)
+                    Button(
+                        onClick = onConnect,
+                        enabled = !state.isConnecting && !state.isInitializing,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(PortalDimensions.primaryActionHeight)
+                            .testTag("connect-button"),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                        ),
+                    ) {
+                        if (state.isConnecting || state.isInitializing) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                strokeWidth = 2.dp,
+                            )
+                            Spacer(Modifier.width(10.dp))
+                        }
+                        Text(
+                            if (state.isConnecting || state.isInitializing) {
+                                stringResource(R.string.connecting)
+                            } else {
+                                stringResource(R.string.connect_and_open_openclash)
+                            },
                         )
                     }
-                    Text(if (state.isConnecting) stringResource(R.string.connecting) else stringResource(R.string.connect_and_open_openclash))
+                }
+            }
+            LanguageSelector(
+                selectedLanguage = state.appLanguage,
+                onLanguageSelected = onLanguageSelected,
+            )
+        }
+    }
+}
+
+@Composable
+private fun WelcomeHeader() {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Surface(
+            modifier = Modifier.size(56.dp),
+            shape = RoundedCornerShape(18.dp),
+            color = MaterialTheme.colorScheme.primaryContainer,
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Router,
+                contentDescription = stringResource(R.string.app_name),
+                modifier = Modifier.padding(14.dp),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+        }
+        Text(
+            text = stringResource(R.string.app_name),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+        )
+        Text(
+            text = stringResource(R.string.connection_welcome_title),
+            style = MaterialTheme.typography.headlineSmall,
+        )
+        Text(
+            text = stringResource(R.string.connection_welcome_description),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun RouterDiscovery(
+    state: MainUiState,
+    onDiscover: () -> Unit,
+    onCandidateSelected: (String) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = stringResource(R.string.discovered_router_addresses),
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.weight(1f),
+            )
+            IconButton(
+                onClick = onDiscover,
+                enabled = !state.isDiscovering,
+                modifier = Modifier.testTag("discover-button"),
+            ) {
+                if (state.isDiscovering) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                } else {
+                    Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.discover))
+                }
+            }
+        }
+        if (state.isDiscovering) {
+            Text(
+                text = stringResource(R.string.finding_routers),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (state.discoveryCandidates.isNotEmpty()) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                state.discoveryCandidates.forEach { candidate ->
+                    AssistChip(
+                        onClick = { onCandidateSelected(candidate) },
+                        label = { Text(candidate) },
+                        leadingIcon = { Icon(Icons.Filled.Router, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                    )
                 }
             }
         }
@@ -257,7 +373,58 @@ private fun ConnectionScreen(
 }
 
 @Composable
-private fun PortalScreen(
+private fun ConnectionStatusCard(state: MainUiState) {
+    val loading = state.isConnecting || state.isInitializing
+    val error = state.connectionError
+    if (!loading && error == null) return
+
+    val isError = error != null
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag(if (isError) "connection-error" else "connection-progress"),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isError) MaterialTheme.colorScheme.errorContainer else LocalPortalStatusColors.current.warning,
+        ),
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (isError) {
+                Icon(
+                    Icons.Filled.ErrorOutline,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                )
+            } else {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = LocalPortalStatusColors.current.onWarning,
+                    strokeWidth = 2.dp,
+                )
+            }
+            Spacer(Modifier.width(12.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = if (isError) stringResource(R.string.connection_failed) else stringResource(R.string.connection_in_progress),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = if (isError) MaterialTheme.colorScheme.onErrorContainer else LocalPortalStatusColors.current.onWarning,
+                )
+                if (error != null) {
+                    Text(
+                        text = error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+internal fun PortalScreen(
     state: MainUiState,
     onSelectTab: (PortalDestination) -> Unit,
     onOpenSettings: () -> Unit,
@@ -282,13 +449,11 @@ private fun PortalScreen(
     val openExternally = state.selectedTab == PortalDestination.ZASHBOARD || state.selectedTab == PortalDestination.METACUBEXD
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(state.activeProfile?.normalizedHost ?: stringResource(R.string.app_name)) },
-                actions = {
-                    TextButton(onClick = onReconnect) { Text(stringResource(R.string.reconnect)) }
-                    TextButton(onClick = onOpenSettings) { Text(stringResource(R.string.settings)) }
-                    TextButton(onClick = onLogout) { Text(stringResource(R.string.logout)) }
-                },
+            PortalTopBar(
+                host = state.activeProfile?.normalizedHost ?: stringResource(R.string.app_name),
+                onReconnect = onReconnect,
+                onOpenSettings = onOpenSettings,
+                onLogout = onLogout,
             )
         },
     ) { innerPadding ->
@@ -297,15 +462,10 @@ private fun PortalScreen(
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            TabRow(selectedTabIndex = state.selectedTab.ordinal) {
-                PortalDestination.entries.forEach { destination ->
-                    Tab(
-                        selected = state.selectedTab == destination,
-                        onClick = { onSelectTab(destination) },
-                        text = { Text(destination.displayName()) },
-                    )
-                }
-            }
+            PortalNavigation(
+                selectedDestination = state.selectedTab,
+                onSelectTab = onSelectTab,
+            )
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -319,6 +479,7 @@ private fun PortalScreen(
                             PortalDestination.ZASHBOARD -> stringResource(R.string.zashboard_unavailable)
                             PortalDestination.METACUBEXD -> stringResource(R.string.metacubexd_unavailable)
                         },
+                        onRetry = onReconnect,
                     )
                 } else if (openExternally) {
                     ExternalPanelScreen(
@@ -335,17 +496,39 @@ private fun PortalScreen(
                         onTrustHost = onTrustHost,
                     )
                     state.pageError?.let { error ->
-                        Surface(
-                            color = MaterialTheme.colorScheme.errorContainer,
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                            ),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .align(Alignment.BottomCenter),
+                                .align(Alignment.BottomCenter)
+                                .padding(16.dp)
+                                .testTag("page-error"),
                         ) {
-                            Text(
-                                text = error,
-                                color = MaterialTheme.colorScheme.onErrorContainer,
-                                modifier = Modifier.padding(12.dp),
-                            )
+                            Row(
+                                modifier = Modifier.padding(14.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    Icons.Filled.ErrorOutline,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                                )
+                                Spacer(Modifier.width(12.dp))
+                                Column {
+                                    Text(
+                                        text = stringResource(R.string.page_error),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.onErrorContainer,
+                                    )
+                                    Text(
+                                        text = error,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onErrorContainer,
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -368,6 +551,100 @@ private fun PortalScreen(
             onWipeAll = onWipeAll,
             onLanguageSelected = onLanguageSelected,
         )
+    }
+}
+
+@Composable
+private fun PortalTopBar(
+    host: String,
+    onReconnect: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onLogout: () -> Unit,
+) {
+    TopAppBar(
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Router,
+                        contentDescription = null,
+                        modifier = Modifier.padding(8.dp),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                }
+                Spacer(Modifier.width(10.dp))
+                Column {
+                    Text(host, style = MaterialTheme.typography.titleMedium)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Filled.CheckCircle,
+                            contentDescription = null,
+                            modifier = Modifier.size(13.dp),
+                            tint = LocalPortalStatusColors.current.success,
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            stringResource(R.string.connected),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+        },
+        actions = {
+            IconButton(onClick = onReconnect) {
+                Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.reconnect))
+            }
+            IconButton(onClick = onOpenSettings) {
+                Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.settings))
+            }
+            IconButton(onClick = onLogout) {
+                Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = stringResource(R.string.logout))
+            }
+        },
+    )
+}
+
+@Composable
+internal fun PortalNavigation(
+    selectedDestination: PortalDestination,
+    onSelectTab: (PortalDestination) -> Unit,
+) {
+    SingleChoiceSegmentedButtonRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 10.dp)
+            .testTag("portal-navigation"),
+    ) {
+        PortalDestination.entries.forEachIndexed { index, destination ->
+            SegmentedButton(
+                selected = selectedDestination == destination,
+                onClick = { onSelectTab(destination) },
+                shape = SegmentedButtonDefaults.itemShape(index, PortalDestination.entries.size),
+                modifier = Modifier.testTag("portal-tab-${destination.name.lowercase()}"),
+                icon = {
+                    Icon(
+                        imageVector = destination.icon(),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                },
+                label = {
+                    Text(
+                        text = destination.displayName(),
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                    )
+                },
+            )
+        }
     }
 }
 
@@ -433,30 +710,15 @@ private fun ExternalPanelScreen(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(text = panelName, style = MaterialTheme.typography.headlineSmall)
-            Text(
-                text = stringResource(R.string.dashboard_external_browser_message),
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            Button(
-                onClick = ::launchPanel,
-                enabled = !launchRequested,
-            ) {
-                Text(stringResource(R.string.open_in_browser))
-            }
-            launchError?.let { error ->
-                Text(
-                    text = error,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-        }
+        IllustratedState(
+            icon = Icons.AutoMirrored.Filled.OpenInNew,
+            title = panelName,
+            message = stringResource(R.string.browser_panel_ready),
+            actionLabel = stringResource(R.string.open_panel),
+            onAction = ::launchPanel,
+            actionEnabled = !launchRequested,
+            error = launchError,
+        )
     }
 }
 
@@ -464,18 +726,65 @@ private fun ExternalPanelScreen(
 private fun PortalUnavailable(
     title: String,
     message: String,
+    onRetry: () -> Unit,
 ) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        IllustratedState(
+            icon = Icons.Filled.WifiOff,
+            title = title,
+            message = message,
+            actionLabel = stringResource(R.string.reconnect),
+            actionIcon = Icons.Filled.Refresh,
+            onAction = onRetry,
+        )
+    }
+}
+
+@Composable
+private fun IllustratedState(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    message: String,
+    actionLabel: String,
+    actionIcon: androidx.compose.ui.graphics.vector.ImageVector = Icons.AutoMirrored.Filled.OpenInNew,
+    onAction: () -> Unit,
+    actionEnabled: Boolean = true,
+    error: String? = null,
+) {
+    Column(
+        modifier = Modifier.padding(28.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        Surface(
+            modifier = Modifier.size(72.dp),
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.secondaryContainer,
         ) {
-            Text(text = title, style = MaterialTheme.typography.headlineSmall)
-            Text(text = message, style = MaterialTheme.typography.bodyLarge)
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.padding(20.dp),
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+        }
+        Text(text = title, style = MaterialTheme.typography.headlineSmall)
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Button(onClick = onAction, enabled = actionEnabled) {
+            Icon(actionIcon, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(actionLabel)
+        }
+        error?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+            )
         }
     }
 }
@@ -510,7 +819,6 @@ private fun PortalWebView(
         WebView(context).apply {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
-            settings.databaseEnabled = true
             settings.loadsImagesAutomatically = true
             settings.cacheMode = WebSettings.LOAD_DEFAULT
             settings.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
@@ -533,7 +841,9 @@ private fun PortalWebView(
     }
 
     AndroidView(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .testTag("portal-webview"),
         factory = {
             webView.apply {
                 webChromeClient = object : WebChromeClient() {
@@ -755,6 +1065,14 @@ private fun PortalDestination.displayName(): String {
         PortalDestination.OPENCLASH -> stringResource(R.string.tab_openclash)
         PortalDestination.ZASHBOARD -> stringResource(R.string.tab_zashboard)
         PortalDestination.METACUBEXD -> stringResource(R.string.tab_metacubexd)
+    }
+}
+
+private fun PortalDestination.icon(): androidx.compose.ui.graphics.vector.ImageVector {
+    return when (this) {
+        PortalDestination.OPENCLASH -> Icons.Filled.Router
+        PortalDestination.ZASHBOARD -> Icons.AutoMirrored.Filled.OpenInNew
+        PortalDestination.METACUBEXD -> Icons.Filled.Language
     }
 }
 

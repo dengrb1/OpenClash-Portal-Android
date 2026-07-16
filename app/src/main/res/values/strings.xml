@@ -41,4 +41,16 @@
     <string name="dashboard_external_browser_message">Zashboard and MetaCubeXD are opened in the system browser for better compatibility. When you return to the app, it will switch back to OpenClash automatically.</string>
     <string name="open_in_browser">Open in browser</string>
     <string name="browser_launch_failed">No browser is available to open this panel.</string>
+    <string name="connection_welcome_title">Router control, made clear.</string>
+    <string name="connection_welcome_description">Connect to your OpenWrt router and keep OpenClash, Zashboard, and MetaCubeXD close at hand.</string>
+    <string name="connect_to_router">Connect to router</string>
+    <string name="connection_details">Connection details</string>
+    <string name="protocol">Protocol</string>
+    <string name="finding_routers">Looking for routers on this network…</string>
+    <string name="connection_in_progress">Signing in to your router…</string>
+    <string name="connection_failed">Connection failed</string>
+    <string name="connected">Connected</string>
+    <string name="page_error">Couldn’t load this page</string>
+    <string name="open_panel">Open panel</string>
+    <string name="browser_panel_ready">This dashboard opens in your browser for the best compatibility. Return here when you are done and OpenClash will be ready.</string>
 </resources>

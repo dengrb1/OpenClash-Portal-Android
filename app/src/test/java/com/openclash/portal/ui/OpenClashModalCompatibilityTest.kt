@@ -7,14 +7,19 @@ class OpenClashModalCompatibilityTest {
     @Test
     fun `targets OpenClash add configuration and similarly structured modal overlays`() {
         assertTrue(OPENCLASH_MODAL_COMPATIBILITY_SCRIPT.contains("#config-upload-overlay"))
-        assertTrue(OPENCLASH_MODAL_COMPATIBILITY_SCRIPT.contains("#config-upload-model"))
-        assertTrue(OPENCLASH_MODAL_COMPATIBILITY_SCRIPT.contains("[class*=\"-modal-overlay\"].show"))
-        assertTrue(OPENCLASH_MODAL_COMPATIBILITY_SCRIPT.contains("[class*=\"-model-overlay\"].show"))
-        assertTrue(OPENCLASH_MODAL_COMPATIBILITY_SCRIPT.contains("max-height: calc(100vh - 32px)"))
+        assertTrue(OPENCLASH_MODAL_COMPATIBILITY_SCRIPT.contains("[class*=\"-modal-overlay\"]"))
+        assertTrue(OPENCLASH_MODAL_COMPATIBILITY_SCRIPT.contains("[class*=\"-model-overlay\"]"))
     }
 
     @Test
     fun `removes backdrop filter that breaks affected WebViews`() {
         assertTrue(OPENCLASH_MODAL_COMPATIBILITY_SCRIPT.contains("backdrop-filter: none !important"))
+    }
+
+    @Test
+    fun `does not override OpenClash modal visibility layout or click handling`() {
+        assertTrue(!OPENCLASH_MODAL_COMPATIBILITY_SCRIPT.contains("display: flex !important"))
+        assertTrue(!OPENCLASH_MODAL_COMPATIBILITY_SCRIPT.contains("pointer-events"))
+        assertTrue(!OPENCLASH_MODAL_COMPATIBILITY_SCRIPT.contains(".modal-backdrop"))
     }
 }

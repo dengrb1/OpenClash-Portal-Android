@@ -966,8 +966,8 @@ private fun WebView.installOpenClashModalCompatibilityStyles() {
 /**
  * OpenClash renders several actions as custom fixed overlays instead of native dialogs. Some
  * Android WebView implementations paint their backdrop but lose the centered card when the
- * overlay uses backdrop-filter. Keep all OpenClash-style modal cards within the visual viewport
- * and use an opaque backdrop that is reliable across WebView versions.
+ * overlay uses backdrop-filter. Disable only that rendering feature and leave OpenClash in
+ * control of visibility, layout and pointer events.
  */
 internal val OPENCLASH_MODAL_COMPATIBILITY_SCRIPT = """
     (function() {
@@ -977,42 +977,12 @@ internal val OPENCLASH_MODAL_COMPATIBILITY_SCRIPT = """
         var style = document.createElement('style');
         style.id = styleId;
         style.textContent = `
-            #config-upload-overlay.config-upload-model-overlay.show,
-            .modal-overlay.show,
-            .modal-backdrop.show,
-            [class*="-modal-overlay"].show,
-            [class*="-model-overlay"].show {
-                position: fixed !important;
-                inset: 0 !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                width: 100vw !important;
-                height: 100vh !important;
-                box-sizing: border-box !important;
-                padding: 16px !important;
-                overflow: auto !important;
-                background: rgba(0, 0, 0, 0.5) !important;
+            #config-upload-overlay.config-upload-model-overlay,
+            .modal-overlay,
+            [class*="-modal-overlay"],
+            [class*="-model-overlay"] {
                 -webkit-backdrop-filter: none !important;
                 backdrop-filter: none !important;
-            }
-
-            #config-upload-overlay.config-upload-model-overlay.show > #config-upload-model.config-upload-model,
-            .modal-overlay.show > .modal,
-            .modal-backdrop.show > .modal,
-            [class*="-modal-overlay"].show > [class*="-modal"],
-            [class*="-model-overlay"].show > [class*="-model"] {
-                display: flex !important;
-                width: 100% !important;
-                max-width: 550px !important;
-                max-height: calc(100vh - 32px) !important;
-                min-height: 0 !important;
-                box-sizing: border-box !important;
-                margin: auto !important;
-                overflow-y: auto !important;
-                flex-shrink: 0 !important;
-                position: relative !important;
-                z-index: 1 !important;
             }
         `;
         (document.head || document.documentElement).appendChild(style);
